@@ -20,8 +20,14 @@
     .card { border:1px solid var(--line); background:rgba(21,26,33,.82); border-radius:22px; padding:22px; min-height:155px; }
     .card strong { display:block; font-size:18px; margin-bottom:10px; }
     .card span { color:var(--muted); line-height:1.45; }
+    .latest { margin-top:56px; }
+    .latest h2 { font-size:28px; margin:0 0 18px; }
+    #videos { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .video { border:1px solid var(--line); border-radius:18px; padding:18px; background:var(--card); }
+    .video a { color:var(--ink); font-weight:800; text-decoration:none; line-height:1.35; }
+    .video time { display:block; color:var(--muted); font-size:12px; margin-top:10px; }
     footer { border-top:1px solid var(--line); color:var(--muted); margin-top:64px; padding-top:22px; font-size:13px; }
-    @media (max-width:700px) { main { padding-top:44px; } .grid { grid-template-columns:1fr; } .lead { font-size:18px; } }
+    @media (max-width:700px) { main { padding-top:44px; } .grid,#videos { grid-template-columns:1fr; } .lead { font-size:18px; } }
   </style>
 </head>
 <body>
@@ -29,16 +35,25 @@
     <div class="eyebrow">JonnyCreatives presents</div>
     <h1>Always Tired.</h1>
     <p class="lead">Short AI comedy about modern life getting worse — one smart home, suspicious pet and impossible POV at a time.</p>
-    <div class="actions">
-      <a class="button" href="https://www.youtube.com/@JonnyCreatives">Watch on YouTube</a>
-      <a class="button secondary" href="https://www.youtube.com/watch?v=AmqMYSRzrsQ">Start with The Dog Knows Everything</a>
-    </div>
-    <section class="grid" aria-label="Series themes">
-      <div class="card"><strong>AI chaos</strong><span>Your assistant knows too much and always chooses the worst possible moment.</span></div>
-      <div class="card"><strong>Smart-home disasters</strong><span>Every appliance has a subscription, an opinion or a hidden agenda.</span></div>
-      <div class="card"><strong>Pets with secrets</strong><span>The dog is watching. The cat is in charge. Nobody is safe.</span></div>
-    </section>
+    <div class="actions"><a class="button" href="https://www.youtube.com/@JonnyCreatives">Watch on YouTube</a><a class="button secondary" href="https://www.youtube.com/watch?v=AmqMYSRzrsQ">Start with The Dog Knows Everything</a></div>
+    <section class="grid" aria-label="Series themes"><div class="card"><strong>AI chaos</strong><span>Your assistant knows too much and always chooses the worst possible moment.</span></div><div class="card"><strong>Smart-home disasters</strong><span>Every appliance has a subscription, an opinion or a hidden agenda.</span></div><div class="card"><strong>Pets with secrets</strong><span>The dog is watching. The cat is in charge. Nobody is safe.</span></div></section>
+    <section class="latest"><h2>Latest episodes</h2><div id="videos"><div class="video"><a href="https://www.youtube.com/@JonnyCreatives">See the latest episodes on YouTube</a></div></div></section>
     <footer>Follow JonnyCreatives for new Always Tired episodes and short-form tech comedy.</footer>
   </main>
+  <script>
+    fetch('./data/youtube-feed.xml').then(r => r.ok ? r.text() : '').then(xml => {
+      if (!xml) return;
+      const doc = new DOMParser().parseFromString(xml, 'text/xml');
+      const entries = [...doc.querySelectorAll('entry')].slice(0, 6);
+      const root = document.querySelector('#videos');
+      if (!entries.length) return;
+      root.innerHTML = entries.map(entry => {
+        const title = entry.querySelector('title')?.textContent || 'Watch on YouTube';
+        const link = entry.querySelector('link')?.getAttribute('href') || 'https://www.youtube.com/@JonnyCreatives';
+        const published = entry.querySelector('published')?.textContent?.slice(0, 10) || '';
+        return `<article class="video"><a href="${link}">${title}</a><time>${published}</time></article>`;
+      }).join('');
+    }).catch(() => {});
+  </script>
 </body>
 </html>
